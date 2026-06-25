@@ -137,6 +137,3 @@ Returns:
 - Add document reset/delete option
 - Add loading states and progress feedback
 - Add chat history persistence
-
-
-You can add an MIT License if you want this to be open source.
