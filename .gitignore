@@ -1,0 +1,21 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment files
+.env
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local app data
+uploads/
+chroma_db/
+
+# Optional logs
+*.log

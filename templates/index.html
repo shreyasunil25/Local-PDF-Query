@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local PDF Query</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+
+      --radius-sm: 0.5rem;
+      --radius-md: 0.85rem;
+      --radius-lg: 1.25rem;
+      --radius-xl: 1.75rem;
+
+      --font-display: "Cormorant Garamond", Georgia, serif;
+      --font-body: "Inter", Arial, sans-serif;
+
+      --color-bg: #090909;
+      --color-surface: #111111;
+      --color-surface-2: #171717;
+      --color-surface-3: #1e1e1e;
+      --color-border: rgba(255, 255, 255, 0.14);
+      --color-divider: rgba(255, 255, 255, 0.10);
+
+      --color-text: #f2f2f2;
+      --color-text-muted: #b9b9b9;
+      --color-text-faint: #7a7a7a;
+      --color-text-inverse: #0b0b0b;
+
+      --color-primary: #c8c8c8;
+      --color-primary-hover: #e1e1e1;
+      --color-accent: #8e8e8e;
+
+      --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.18);
+      --shadow-md: 0 18px 45px rgba(0, 0, 0, 0.28);
+
+      --content-width: 1180px;
+      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 26%),
+        linear-gradient(180deg, #050505 0%, #0b0b0b 100%);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: 1.6;
+      padding: var(--space-6);
+    }
+
+    .page-shell {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      min-height: calc(100vh - 3rem);
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: var(--space-6);
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(8px);
+    }
+
+    .sidebar {
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      color: var(--color-primary);
+    }
+
+    .eyebrow {
+      font-size: var(--text-xs);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--color-text-faint);
+    }
+
+    .brand h1 {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 400;
+      font-size: var(--text-xl);
+      line-height: 1.05;
+      letter-spacing: 0.01em;
+      color: var(--color-text);
+    }
+
+    .brand p,
+    .sidebar-note,
+    .meta-list li {
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+    }
+
+    .meta-list {
+      list-style: none;
+      display: grid;
+      gap: var(--space-3);
+      margin-top: var(--space-8);
+    }
+
+    .meta-list li {
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--color-divider);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: calc(100vh - 3rem);
+      overflow: hidden;
+    }
+
+    .workspace-header {
+      padding: var(--space-6) var(--space-8);
+      border-bottom: 1px solid var(--color-divider);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .workspace-header h2 {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 400;
+      font-size: var(--text-lg);
+      color: var(--color-text);
+    }
+
+    .status-pill {
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      padding: 0.55rem 0.9rem;
+      border-radius: 999px;
+      font-size: var(--text-xs);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .upload-area {
+      padding: var(--space-6) var(--space-8) 0;
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .upload-card {
+      border: 1px dashed rgba(255,255,255,0.22);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      background: rgba(255,255,255,0.02);
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .upload-card h3 {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 400;
+      font-size: var(--text-lg);
+      color: var(--color-text);
+    }
+
+    .upload-card p {
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      max-width: 62ch;
+    }
+
+    .upload-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+    }
+
+    .file-input-wrap {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+    }
+
+    .file-input-wrap input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .btn,
+    .file-visual {
+      min-height: 46px;
+      padding: 0.8rem 1.15rem;
+      border-radius: 999px;
+      border: 1px solid var(--color-border);
+      transition: all var(--transition);
+      font-size: var(--text-sm);
+    }
+
+    .file-visual {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text);
+      background: transparent;
+    }
+
+    .btn {
+      cursor: pointer;
+      background: transparent;
+      color: var(--color-text);
+    }
+
+    .btn:hover,
+    .file-visual:hover {
+      border-color: rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #d8d8d8 0%, #a9a9a9 100%);
+      color: var(--color-text-inverse);
+      border-color: transparent;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(180deg, #ebebeb 0%, #bdbdbd 100%);
+    }
+
+    .filename {
+      color: var(--color-text-faint);
+      font-size: var(--text-sm);
+    }
+
+    .chat-region {
+      padding: var(--space-6) var(--space-8);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      min-height: 260px;
+    }
+
+    .message {
+      width: min(78ch, 88%);
+      padding: var(--space-5);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .message-label {
+      display: block;
+      margin-bottom: var(--space-2);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--color-text-faint);
+    }
+
+    .message-content {
+      color: var(--color-text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty-state {
+      margin: auto 0;
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .empty-state h3 {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 400;
+      font-size: var(--text-lg);
+      margin-bottom: var(--space-2);
+    }
+
+    .empty-state p {
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      max-width: 60ch;
+    }
+
+    .composer {
+      border-top: 1px solid var(--color-divider);
+      padding: var(--space-5) var(--space-8) var(--space-6);
+      display: grid;
+      gap: var(--space-3);
+      background: rgba(0,0,0,0.18);
+    }
+
+    .composer label {
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--color-text-faint);
+    }
+
+    .composer-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-3);
+      align-items: end;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 72px;
+      max-height: 220px;
+      resize: vertical;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      background: rgba(255,255,255,0.03);
+      color: var(--color-text);
+      padding: var(--space-4);
+      outline: none;
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+    }
+
+    textarea::placeholder {
+      color: #8a8a8a;
+    }
+
+    textarea:focus {
+      border-color: rgba(255,255,255,0.34);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.05);
+    }
+
+    .helper-text {
+      color: var(--color-text-faint);
+      font-size: var(--text-xs);
+    }
+
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 960px) {
+      body {
+        padding: var(--space-4);
+      }
+
+      .page-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace {
+        min-height: auto;
+      }
+
+      .chat-region {
+        min-height: 340px;
+      }
+
+      .composer-row {
+        grid-template-columns: 1fr;
+      }
+
+      .message {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-shell">
+    <aside class="panel sidebar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="PDF QnA logo">
+          <rect x="10" y="10" width="28" height="36" rx="3" stroke="currentColor" stroke-width="2"/>
+          <path d="M22 18H42C45.314 18 48 20.686 48 24V50C48 51.105 47.105 52 46 52H26C22.686 52 20 49.314 20 46V20C20 18.895 20.895 18 22 18Z" stroke="currentColor" stroke-width="2"/>
+          <path d="M27 30H41" stroke="currentColor" stroke-width="2"/>
+          <path d="M27 36H41" stroke="currentColor" stroke-width="2"/>
+          <path d="M27 42H37" stroke="currentColor" stroke-width="2"/>
+        </svg>
+
+        <div>
+          <div class="eyebrow">Offline Document Retrieval</div>
+          <h1>Local PDF Query</h1>
+        </div>
+
+        <p>
+          Upload a document, index it locally, and query it through a refined retrieval interface powered by Ollama and Chroma.
+        </p>
+
+        <!--<ul class="meta-list">
+          <li>Private local pipeline, no API billing.</li>
+          <li>PDF upload, chunking, embeddings, and semantic search.</li>
+          <li>Designed as a formal, minimal full stack demo.</li>
+        </ul>-->
+      </div>
+
+      <p class="sidebar-note">
+        Recommended before use: ensure Ollama is running and both `llama3.2` and `nomic-embed-text` are available locally.
+      </p>
+    </aside>
+
+    <main class="panel workspace" id="main-content">
+      <header class="workspace-header">
+        <div>
+          <h2>Document Workspace</h2>
+        </div>
+        <div class="status-pill" id="statusPill">Awaiting PDF</div>
+      </header>
+
+      <section class="upload-area" aria-label="Upload section">
+        <div class="upload-card">
+          <div>
+            <h3>Upload a source file</h3>
+            <p>
+              Select a PDF, send it for local ingestion, then begin asking questions in the input area below.
+            </p>
+          </div>
+
+          <div class="upload-row">
+            <label class="file-input-wrap">
+              <span class="file-visual">Choose PDF</span>
+              <input type="file" id="pdfFile" accept="application/pdf" />
+            </label>
+
+            <button class="btn btn-primary" id="uploadBtn" type="button">Upload & Index</button>
+            <span class="filename" id="fileName">No file selected.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="chat-region" id="chatRegion" aria-live="polite">
+        <div class="empty-state" id="emptyState">
+          <h3>Ready for document dialogue</h3>
+          <p>
+            Once a PDF is indexed, your questions and answers will appear here in a structured conversational flow.
+          </p>
+        </div>
+      </section>
+
+      <section class="composer" aria-label="Question composer">
+        <label for="questionInput">Ask a question</label>
+        <div class="composer-row">
+          <textarea
+            id="questionInput"
+            placeholder="Type a question about the uploaded PDF..."
+          ></textarea>
+          <button class="btn btn-primary" id="askBtn" type="button">Submit Query</button>
+        </div>
+        <p class="helper-text" id="helperText">Upload a PDF first, then ask questions about its contents.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const pdfFile = document.getElementById("pdfFile");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const askBtn = document.getElementById("askBtn");
+    const fileName = document.getElementById("fileName");
+    const chatRegion = document.getElementById("chatRegion");
+    const questionInput = document.getElementById("questionInput");
+    const statusPill = document.getElementById("statusPill");
+    const helperText = document.getElementById("helperText");
+    const emptyState = document.getElementById("emptyState");
+
+    let documentReady = false;
+
+    pdfFile.addEventListener("change", () => {
+      if (pdfFile.files.length > 0) {
+        fileName.textContent = pdfFile.files[0].name;
+      } else {
+        fileName.textContent = "No file selected.";
+      }
+    });
+
+    function appendMessage(role, text) {
+      if (emptyState) {
+        emptyState.classList.add("hidden");
+      }
+
+      const wrapper = document.createElement("article");
+      wrapper.className = `message ${role}`;
+
+      const label = document.createElement("span");
+      label.className = "message-label";
+      label.textContent = role === "user" ? "Query" : "Response";
+
+      const content = document.createElement("div");
+      content.className = "message-content";
+      content.textContent = text;
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(content);
+      chatRegion.appendChild(wrapper);
+      chatRegion.scrollTop = chatRegion.scrollHeight;
+
+      return content;
+    }
+
+    function setBusy(isBusy, text = "") {
+      uploadBtn.disabled = isBusy;
+      askBtn.disabled = isBusy;
+      document.body.classList.toggle("loading", isBusy);
+      if (text) {
+        helperText.textContent = text;
+      }
+    }
+
+    uploadBtn.addEventListener("click", async () => {
+      if (!pdfFile.files.length) {
+        helperText.textContent = "Please choose a PDF before uploading.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", pdfFile.files[0]);
+
+      setBusy(true, "Uploading and indexing document...");
+      statusPill.textContent = "Indexing PDF";
+
+      try {
+        const response = await fetch("/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Upload failed.");
+        }
+
+        documentReady = true;
+        statusPill.textContent = "Document Ready";
+        helperText.textContent = data.message || "PDF uploaded and indexed successfully.";
+        appendMessage("bot", data.message || "PDF uploaded and indexed successfully.");
+      } catch (error) {
+        statusPill.textContent = "Upload Failed";
+        helperText.textContent = error.message;
+        appendMessage("bot", `Upload error: ${error.message}`);
+      } finally {
+        setBusy(false, helperText.textContent);
+      }
+    });
+
+    askBtn.addEventListener("click", async () => {
+      const question = questionInput.value.trim();
+
+      if (!documentReady) {
+        helperText.textContent = "Upload and index a PDF before asking a question.";
+        return;
+      }
+
+      if (!question) {
+        helperText.textContent = "Please type a question.";
+        return;
+      }
+
+      appendMessage("user", question);
+      questionInput.value = "";
+
+      const answerNode = appendMessage("bot", "Generating answer...");
+      setBusy(true, "Running semantic retrieval and local generation...");
+      statusPill.textContent = "Thinking";
+
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Could not generate answer.");
+        }
+
+        answerNode.textContent = data.answer || "No answer returned.";
+        helperText.textContent = "Answer generated successfully.";
+        statusPill.textContent = "Document Ready";
+      } catch (error) {
+        answerNode.textContent = `Query error: ${error.message}`;
+        helperText.textContent = error.message;
+        statusPill.textContent = "Error";
+      } finally {
+        setBusy(false, helperText.textContent);
+      }
+    });
+
+    questionInput.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        askBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
